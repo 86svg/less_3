@@ -3,41 +3,19 @@ class Station
 
   def initialize(name)
     @name = name
-    @trains_list = []
+    @trains = []
   end
 
   def take_train(train)
-    @trains_list << train
+    trains << train
   end
 
   def send_train(train)
-    @trains_list.delete(train)
+    trains.delete(train)
   end
 
-  def number_of_trains
-    number_of_pass = 0
-    number_of_cargo = 0
-
-    @trains_list.each do |train|
-      if train.type == 'cargo'
-        number_of_cargo += 1
-      else
-        number_of_pass += 1
-      end
-    end
-
-    puts "количество пассажирских вагонов #{number_of_pass}"
-    puts "количество грузовых вагонов #{number_of_cargo}"
-  end
-
-  def trains_list
-    if @trains_list.empty?
-      puts “На станции нет поездов”
-    else
-      @trains_list.each do |train|
-        puts train.name
-      end
-    end
+  def trains_by_type(type)
+    trains.select {|train| train.type == type}
   end
 end
 
@@ -48,19 +26,15 @@ class Route
     @stations = [start_station, finish_station]
   end
 
-  def station_list
-    @stations
-  end
-
   def add_tintermediate_station(station)
-    @stations.insert(-2, station)
+    stations.insert(-2, station)
   end
 
   def remove_tintermediate_station
-    if @stations.size > 2
-      @stations.delete_at(-2)
+    if stations.size > 2
+      stations.delete_at(-2)
     else
-      puts 'Промежуточных станций нет'
+      stations
     end
   end
 end
@@ -76,45 +50,53 @@ class Train
   end
 
   def speed_up(speed)
-    @speed += speed
+    self.speed += speed
   end
 
   def brake
-    @speed = 0
-  end
-
-  def number_of_wagons_list(number_of_wagons)
-    @number_of_wagons = number_of_wagons
+    self.speed = 0
   end
 
   def add_number_of_wagons
-    @number_of_wagons += 1 if speed == 0
+    self.number_of_wagons += 1 if speed == 0
   end
 
   def remove_number_of_wagons
-    @number_of_wagons -= 1 if speed == 0
+    self.number_of_wagons -= 1 if speed == 0
   end
 
   def set_route(route)
     @route = route
-    @current_station = @route.stations_list.first
+    @current_station = @route.stations.first
+  end
+
+  def move_forward
+    current_station_index = station_index(@current_station)
+    if current_station_index == @route.stations.size - 1
+      stations
+    else
+      @current_station = @route.stations[current_station_index + 1]
+    end
+  end
+
+  def move_backward
+    current_station_index = station_index(@current_station)
+    if current_station_index.zero?
+      stations
+    else
+      @current_station = @route.stations[current_station_index - 1]
+    end
+  end
+
+  def station_index(station)
+    @route.stations.index(station)
   end
 
   def next_station
-    current_station_index = @route.station_list.index(@current_station)
-    if current_station_index == @route.station_list.size - 1
-      puts 'Вы на конечной, движение вперед невозможно'
-    else
-      @current_station = @route.stations_list[current_station_index + 1]
-    end
+    @current_station = @route.stations[current_station_index + 1]
   end
 
   def previous_station
-    current_station_index = @route.station_list.index(@current_station)
-    if current_station_index.zero?
-      puts 'Вы на начальной, движение назад невозможно'
-    else
-      @current_station = @route.stations_list[current_station_index - 1]
-    end
+    @current_station = @route.stations[current_station_index - 1]
   end
 end
